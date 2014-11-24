@@ -87,7 +87,7 @@
                 <configuration>
                     <file>${project.build.directory}/config/org/pentaho/di/trans/steps/mergedocuments/plugin.xml</file>
                     <token>@@project.version@@</token>
-                    <value>${project.version}</value>
+                    <value>${version}</value>
                 </configuration>
             </plugin>
             <plugin>

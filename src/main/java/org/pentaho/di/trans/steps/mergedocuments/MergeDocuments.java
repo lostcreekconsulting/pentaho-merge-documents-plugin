@@ -1,5 +1,6 @@
 package org.pentaho.di.trans.steps.mergedocuments;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
@@ -56,19 +57,31 @@ public class MergeDocuments extends BaseStep implements StepInterface {
             Object currentKey = r[data.inputRowMeta.indexOfValue(meta.getDynamicKeyField())];
             int sourceField = data.inputRowMeta.indexOfValue(meta.getDynamicSourceFileNameField());
             int targetField = data.inputRowMeta.indexOfValue(meta.getDynamicTargetFileNameField());
-
-            logBasic("Current: " + currentKey);
-            logBasic("Previous: " + previousKey);
+            String source = (String) r[sourceField];
+            String target = (String) r[targetField];
+            File sourceFile = new File(source);
+            File targetFile = new File(target);
+            File targetFolder = targetFile.getParentFile();
 
             if (!currentKey.equals(previousKey)) {
                 if (previousKey != null) {
-                    logBasic("Saving");
-                    merger.save();
-                    Object[] outputRow = RowDataUtil.removeItem(r, sourceField);
-                    putRow(data.outputRowMeta, outputRow);
+                    if (!targetFile.exists() || meta.isOverwriteTarget()) {
+                        if (!targetFolder.exists() && meta.isCreateParentFolder()) {
+                            targetFolder.mkdirs();
+                        }
+
+                        if (targetFolder.exists()) {
+                            merger.save();
+                            Object[] outputRow = RowDataUtil.removeItem(r, sourceField);
+                            putRow(data.outputRowMeta, outputRow);
+                        }
+                    }
+
+                    if (meta.isDeleteSource()) {
+                        sourceFile.delete();
+                    }
                 }
 
-                logBasic("Instance");
                 merger = DocumentMerger.getInstance((String) r[targetField]);
             }
 
