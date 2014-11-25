@@ -65,7 +65,7 @@ public class MergeDocuments extends BaseStep implements StepInterface {
 
             if (!currentKey.equals(previousKey)) {
                 if (previousKey != null) {
-                    if (!targetFile.exists() || meta.isOverwriteTarget()) {
+                    if (!targetFolder.exists() || meta.isOverwriteTarget()) {
                         if (!targetFolder.exists() && meta.isCreateParentFolder()) {
                             targetFolder.mkdirs();
                         }
