@@ -39,7 +39,7 @@ public class MergeDocuments extends BaseStep implements StepInterface {
             Object[] r = getRow();
 
             if (r == null) {
-                if (previousKey != null) {
+                if (previousKey != null && merger != null) {
                     merger.save();
                 }
 
@@ -63,29 +63,34 @@ public class MergeDocuments extends BaseStep implements StepInterface {
             File targetFile = new File(target);
             File targetFolder = targetFile.getParentFile();
 
+            logBasic(String.valueOf(currentKey.equals(previousKey)));
+
             if (!currentKey.equals(previousKey)) {
                 if (previousKey != null) {
-                    if (!targetFolder.exists() || meta.isOverwriteTarget()) {
-                        if (!targetFolder.exists() && meta.isCreateParentFolder()) {
-                            targetFolder.mkdirs();
-                        }
-
-                        if (targetFolder.exists()) {
-                            merger.save();
-                            Object[] outputRow = RowDataUtil.removeItem(r, sourceField);
-                            putRow(data.outputRowMeta, outputRow);
-                        }
-                    }
-
-                    if (meta.isDeleteSource()) {
-                        sourceFile.delete();
-                    }
+                    merger.save();
+                    Object[] outputRow = RowDataUtil.removeItem(r, sourceField);
+                    putRow(data.outputRowMeta, outputRow);
                 }
 
-                merger = DocumentMerger.getInstance((String) r[targetField]);
+                if (!targetFolder.exists() || meta.isOverwriteTarget()) {
+                    if (!targetFolder.exists() && meta.isCreateParentFolder()) {
+                        targetFolder.mkdirs();
+                    }
+
+                    if (targetFolder.exists()) {
+                        merger = DocumentMerger.getInstance((String) r[targetField]);
+                    }
+                }
             }
 
-            merger.add(new FileInputStream((String) r[sourceField]));
+            if (merger != null) {
+                merger.add(new FileInputStream((String) r[sourceField]));
+            }
+
+            if (meta.isDeleteSource()) {
+                sourceFile.delete();
+            }
+
             previousKey = currentKey;
 
             return true;
